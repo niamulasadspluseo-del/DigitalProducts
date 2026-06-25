@@ -9,7 +9,7 @@ function AdminDashboard() {
   const orders = useStore((s) => s.orders);
   const users = useStore((s) => s.users.filter((u) => u.role === "customer"));
   const products = useStore((s) => s.products);
-  const revenue = orders.filter((o) => o.status !== "Refunded").reduce((s, o) => s + o.total, 0);
+  const revenue = orders.filter((o) => o.status !== "Refunded" && o.status !== "Cancel" && o.status !== "Payment Not Received").reduce((s, o) => s + o.total, 0);
   const sales = orders.reduce((s, o) => s + o.items.reduce((a, i) => a + i.qty, 0), 0);
 
   const counts: Record<string, number> = {};

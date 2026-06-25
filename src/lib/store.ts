@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Role = "admin" | "customer";
 export type UserStatus = "active" | "suspended" | "banned";
-export type OrderStatus = "Pending" | "In Progress" | "Ready For Delivery" | "Delivered" | "Refunded";
+export type OrderStatus = "Pending" | "Payment Received" | "Payment Not Received" | "In Progress" | "Ready For Delivery" | "Delivered" | "Refunded" | "Cancel";
 
 export interface User {
   id: string; name: string; email: string; password: string;
@@ -139,12 +139,14 @@ export function useStore<T>(selector: (s: DB) => T): T {
 // ---------- Mapping helpers ----------
 const ts = (d: string | null | undefined) => d ? new Date(d).getTime() : Date.now();
 const statusOut = (s: string): OrderStatus => ({
-  pending: "Pending", in_progress: "In Progress", ready_for_delivery: "Ready For Delivery",
-  delivered: "Delivered", refunded: "Refunded",
+  pending: "Pending", payment_received: "Payment Received", payment_not_received: "Payment Not Received",
+  in_progress: "In Progress", ready_for_delivery: "Ready For Delivery",
+  delivered: "Delivered", refunded: "Refunded", cancel: "Cancel",
 } as Record<string, OrderStatus>)[s] ?? "Pending";
 const statusIn = (s: OrderStatus): string => ({
-  "Pending": "pending", "In Progress": "in_progress", "Ready For Delivery": "ready_for_delivery",
-  "Delivered": "delivered", "Refunded": "refunded",
+  "Pending": "pending", "Payment Received": "payment_received", "Payment Not Received": "payment_not_received",
+  "In Progress": "in_progress", "Ready For Delivery": "ready_for_delivery",
+  "Delivered": "delivered", "Refunded": "refunded", "Cancel": "cancel",
 }[s]);
 
 function rowToProduct(r: any): Product {

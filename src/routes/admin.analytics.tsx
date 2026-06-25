@@ -14,7 +14,7 @@ function Analytics() {
   const days = Array.from({ length: 14 }).map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (13 - i)); d.setHours(0, 0, 0, 0);
     const key = d.toLocaleDateString();
-    const rev = orders.filter((o) => new Date(o.createdAt).toLocaleDateString() === key && o.status !== "Refunded").reduce((s, o) => s + o.total, 0);
+    const rev = orders.filter((o) => new Date(o.createdAt).toLocaleDateString() === key && o.status !== "Refunded" && o.status !== "Cancel" && o.status !== "Payment Not Received").reduce((s, o) => s + o.total, 0);
     return { day: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }), revenue: +rev.toFixed(2) };
   });
 

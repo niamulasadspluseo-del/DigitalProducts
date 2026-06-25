@@ -20,7 +20,7 @@ function Dashboard() {
       <div className="grid sm:grid-cols-3 gap-6">
         <Card className="p-5"><ShoppingBag className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{orders.length}</div><div className="text-sm text-muted-foreground">Total orders</div></Card>
         <Card className="p-5"><Download className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{downloads.length}</div><div className="text-sm text-muted-foreground">Available downloads</div></Card>
-        <Card className="p-5"><Clock className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{orders.filter((o) => o.status !== "Delivered" && o.status !== "Refunded").length}</div><div className="text-sm text-muted-foreground">In progress</div></Card>
+        <Card className="p-5"><Clock className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{orders.filter((o) => o.status !== "Delivered" && o.status !== "Refunded" && o.status !== "Cancel" && o.status !== "Payment Not Received").length}</div><div className="text-sm text-muted-foreground">In progress</div></Card>
       </div>
 
       <div>

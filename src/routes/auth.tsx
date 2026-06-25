@@ -74,15 +74,11 @@ function SignupForm() {
   );
 }
 function ForgotForm() {
-  const [email, setEmail] = useState("");
+  const nav = useNavigate();
   return (
-    <form className="mt-6 space-y-3" onSubmit={(e) => {
-      e.preventDefault();
-      try { auth.forgot(email); toast.success("Reset link sent (simulated)"); }
-      catch (err: any) { toast.error(err.message); }
-    }}>
-      <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-      <Button type="submit" className="w-full">Send reset link</Button>
-    </form>
+    <div className="mt-6 space-y-4 text-center">
+      <p className="text-muted-foreground">If you forgot your password, please contact us to reset it.</p>
+      <Button className="w-full" onClick={() => nav({ to: "/contact" })}>Contact With Us For Reset Password</Button>
+    </div>
   );
 }

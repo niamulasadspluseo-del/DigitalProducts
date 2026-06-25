@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useStore, admin } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/customers")({ component: CustomersAdmin });
@@ -13,7 +16,24 @@ function CustomersAdmin() {
   const allUsers = useStore((s) => s.users.filter((u) => u.role === "customer"));
   const orders = useStore((s) => s.orders);
   const [search, setSearch] = useState("");
+  const [resetUser, setResetUser] = useState<{ id: string; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
   const users = search ? allUsers.filter((u) => u.email.toLowerCase().includes(search.toLowerCase()) || u.name.toLowerCase().includes(search.toLowerCase())) : allUsers;
+
+  async function handleResetPassword() {
+    if (!resetUser || !newPassword) return;
+    try {
+      const { error } = await supabase.rpc("admin_reset_password" as any, {
+        target_user_id: resetUser.id,
+        new_password: newPassword,
+      });
+      if (error) throw error;
+      toast.success("Password reset for " + resetUser.name);
+      setResetUser(null);
+      setNewPassword("");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Customers ({allUsers.length})</h1>
@@ -34,12 +54,28 @@ function CustomersAdmin() {
                 {u.status !== "active" && <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, "active"); } catch (e: any) { toast.error(e.message); } }}>Activate</Button>}
                 {u.status !== "suspended" && <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, "suspended"); } catch (e: any) { toast.error(e.message); } }}>Suspend</Button>}
                 {u.status !== "banned" && <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, "banned"); } catch (e: any) { toast.error(e.message); } }}>Ban</Button>}
+                <Button size="sm" variant="outline" onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}>Reset Password</Button>
               </div>
             </Card>
           );
         })}
         {!users.length && <p className="text-sm text-muted-foreground">No customers yet.</p>}
       </div>
+
+      <Dialog open={!!resetUser} onOpenChange={(o) => { if (!o) { setResetUser(null); setNewPassword(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password for {resetUser?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>New temporary password</Label>
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" minLength={6} />
+            </div>
+            <Button onClick={handleResetPassword} disabled={newPassword.length < 6}>Set Password</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

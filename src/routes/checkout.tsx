@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { useStore, totals, orders, auth, cart } from "@/lib/store";
+import { useStore, totals, orders, cart } from "@/lib/store";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,6 @@ function Checkout() {
         o = await orders.create({ method: "crypto", txid, network: net?.name + " (" + net?.chain + ")" }, contact);
         toast.success("Order placed! Status: pending. Wait for admin approval.");
       }
-      await auth.updateProfile({ name, email });
       nav({ to: "/account/orders/$id", params: { id: o.id } });
     } catch (err: any) { toast.error(err.message); }
   }

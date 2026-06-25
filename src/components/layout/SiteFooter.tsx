@@ -40,7 +40,7 @@ export function SiteFooter() {
       <div className="border-t">
         <div className="container mx-auto max-w-7xl px-4 py-4 text-xs text-muted-foreground flex justify-between">
           <span>© {new Date().getFullYear()} {brand.name}. All rights reserved.</span>
-          <span>Built with ❤️ for creators.</span>
+          <span>Design By Niamul.</span>
         </div>
       </div>
     </footer>

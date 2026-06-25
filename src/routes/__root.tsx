@@ -96,6 +96,13 @@ function LoadingScreen() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const ready = useStore((s) => s.ready);
+  const favicon = useStore((s) => s.settings.brand.favicon);
+  useEffect(() => {
+    if (!favicon) return;
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+    link.href = favicon;
+  }, [favicon]);
   if (!ready) return <LoadingScreen />;
   return (
     <QueryClientProvider client={queryClient}>

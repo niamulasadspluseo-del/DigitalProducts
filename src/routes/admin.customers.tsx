@@ -1,18 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useStore, admin } from "@/lib/store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/customers")({ component: CustomersAdmin });
 
 function CustomersAdmin() {
-  const users = useStore((s) => s.users.filter((u) => u.role === "customer"));
+  const allUsers = useStore((s) => s.users.filter((u) => u.role === "customer"));
   const orders = useStore((s) => s.orders);
+  const [search, setSearch] = useState("");
+  const users = search ? allUsers.filter((u) => u.email.toLowerCase().includes(search.toLowerCase()) || u.name.toLowerCase().includes(search.toLowerCase())) : allUsers;
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Customers</h1>
+      <h1 className="text-3xl font-bold mb-6">Customers ({allUsers.length})</h1>
+      <Input placeholder="Search by name or email..." value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
       <div className="space-y-2">
         {users.map((u) => {
           const myOrders = orders.filter((o) => o.userId === u.id);
@@ -25,12 +30,11 @@ function CustomersAdmin() {
                 <div className="text-xs text-muted-foreground">{myOrders.length} orders · ${spent.toFixed(2)} spent</div>
               </div>
               <Badge variant={u.status === "active" ? "default" : "destructive"}>{u.status}</Badge>
-              <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, u.status === "suspended" ? "active" : "suspended"); } catch (e: any) { toast.error(e.message); } }}>
-                {u.status === "suspended" ? "Unsuspend" : "Suspend"}
-              </Button>
-              <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, u.status === "banned" ? "active" : "banned"); } catch (e: any) { toast.error(e.message); } }}>
-                {u.status === "banned" ? "Unban" : "Ban"}
-              </Button>
+              <div className="flex gap-1">
+                {u.status !== "active" && <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, "active"); } catch (e: any) { toast.error(e.message); } }}>Activate</Button>}
+                {u.status !== "suspended" && <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, "suspended"); } catch (e: any) { toast.error(e.message); } }}>Suspend</Button>}
+                {u.status !== "banned" && <Button size="sm" variant="outline" onClick={async () => { try { await admin.setUserStatus(u.id, "banned"); } catch (e: any) { toast.error(e.message); } }}>Ban</Button>}
+              </div>
             </Card>
           );
         })}

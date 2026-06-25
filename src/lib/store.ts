@@ -358,18 +358,24 @@ export const auth = {
       options: { emailRedirectTo: window.location.origin, data: { name } },
     });
     if (error) throw new Error(error.message);
-    if (!data.user) throw new Error("Signup failed");
+    if (!data.user || !data.user.identities?.length) throw new Error("An account with this email already exists");
     return { id: data.user.id, name, email, password: "", role: "customer" as Role, status: "active" as UserStatus, verified: !!data.session, createdAt: Date.now() } as User;
   },
   async login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
     if (!data.user) throw new Error("Invalid credentials");
-    // Wait briefly for onAuthStateChange to populate role/profile.
     await resolveSession();
     await loadUserScopedData();
     emit();
-    return profileToUser(currentProfile ?? { id: data.user.id, name: data.user.user_metadata?.name ?? data.user.email, email: data.user.email, status: "active", created_at: data.user.created_at }, currentRole);
+    const user = profileToUser(currentProfile ?? { id: data.user.id, name: data.user.user_metadata?.name ?? data.user.email, email: data.user.email, status: "active", created_at: data.user.created_at }, currentRole);
+    if (user.status === "banned") {
+      await supabase.auth.signOut();
+      db.sessionUserId = null; currentProfile = null; currentRole = "customer";
+      emit();
+      throw new Error("Your account is banned. Please contact us.");
+    }
+    return user;
   },
   async logout() {
     await supabase.auth.signOut();
@@ -449,6 +455,8 @@ export function totals(c: Cart = db.cart) {
 export const orders = {
   async create(payment: Order["payment"], contact?: { name: string; email: string; telegram?: string; whatsapp?: string }) {
     const user = auth.current(); if (!user) throw new Error("Login required");
+    if (user.status === "suspended") throw new Error("Your account is suspended. Please contact us.");
+    if (user.status === "banned") throw new Error("Your account is banned. Please contact us.");
     const t = totals(); if (!t.items.length) throw new Error("Cart is empty");
     const items: OrderItem[] = t.items.map((i) => ({
       productId: i.product.id, title: i.product.title, price: i.unit, qty: i.qty,

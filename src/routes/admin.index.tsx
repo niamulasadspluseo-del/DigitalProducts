@@ -35,10 +35,10 @@ function AdminDashboard() {
 
       <Card className="p-6">
         <h2 className="font-semibold mb-3">Recent orders</h2>
-        <ul className="space-y-2">
-          {orders.slice(0, 5).map((o) => <li key={o.id} className="flex justify-between border-b last:border-0 pb-2 text-sm"><span>{o.id} · {o.userName}</span><span>${o.total.toFixed(2)} · {o.status}</span></li>)}
-          {!orders.length && <li className="text-sm text-muted-foreground">No orders.</li>}
-        </ul>
+        <div className="space-y-3">
+          {orders.slice(0, 5).map((o) => <div key={o.id} className="flex justify-between border-b last:border-0 pb-3 text-sm"><span>{o.items.map((i) => i.title).join(", ")} · {o.userName}</span><span>${o.total.toFixed(2)} · {o.status}</span></div>)}
+          {!orders.length && <div className="text-sm text-muted-foreground">No orders.</div>}
+        </div>
       </Card>
     </div>
   );

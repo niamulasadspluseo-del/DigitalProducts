@@ -11,15 +11,15 @@ function Orders() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">My Orders</h1>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-6">
         {orders.map((o) => (
-          <Link key={o.id} to="/account/orders/$id" params={{ id: o.id }}>
-            <Card className="p-4 flex justify-between items-center hover:shadow-sm">
+          <Link key={o.id} to="/account/orders/$id" params={{ id: o.id }} className="block">
+            <Card className="p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 hover:shadow-md border">
               <div>
-                <div className="font-medium">{o.id}</div>
-                <div className="text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleString()}</div>
+                <div className="font-medium">{o.items.map((i) => i.title).join(", ")}</div>
+                <div className="text-xs text-muted-foreground mt-1.5">{new Date(o.createdAt).toLocaleString()}</div>
               </div>
-              <div className="flex items-center gap-3"><Badge variant="outline">{o.status}</Badge><span className="font-semibold">${o.total.toFixed(2)}</span></div>
+              <div className="flex items-center gap-4"><Badge variant="outline" className="px-3 py-1">{o.status}</Badge><span className="font-semibold text-lg">${o.total.toFixed(2)}</span></div>
             </Card>
           </Link>
         ))}

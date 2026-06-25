@@ -12,11 +12,11 @@ function OrdersAdmin() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Orders</h1>
-      <div className="space-y-2">
+      <div className="space-y-4">
         {orders.map((o) => (
           <Card key={o.id} className="p-4 flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-0">
-              <div className="font-medium">{o.id}</div>
+              <div className="font-medium">{o.items.map((i) => i.title).join(", ")}</div>
               <div className="text-xs text-muted-foreground">{o.userName} · {o.userEmail} · {new Date(o.createdAt).toLocaleString()}</div>
               <div className="text-xs text-muted-foreground">{o.items.length} items · {o.payment.method}{o.payment.network ? " · " + o.payment.network : ""}</div>
             </div>

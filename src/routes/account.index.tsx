@@ -17,21 +17,21 @@ function Dashboard() {
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Dashboard</h1>
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-3 gap-6">
         <Card className="p-5"><ShoppingBag className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{orders.length}</div><div className="text-sm text-muted-foreground">Total orders</div></Card>
         <Card className="p-5"><Download className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{downloads.length}</div><div className="text-sm text-muted-foreground">Available downloads</div></Card>
         <Card className="p-5"><Clock className="h-5 w-5 text-muted-foreground" /><div className="mt-2 text-2xl font-bold">{orders.filter((o) => o.status !== "Delivered" && o.status !== "Refunded").length}</div><div className="text-sm text-muted-foreground">In progress</div></Card>
       </div>
 
       <div>
-        <h2 className="font-semibold text-lg mb-3">My Purchases</h2>
+        <h2 className="font-semibold text-lg mb-4">My Purchases</h2>
         {downloads.length ? (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-6">
             {downloads.map((d, i) => (
-              <Card key={i} className="p-4 flex justify-between items-center">
+              <Card key={i} className="p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border">
                 <div>
                   <div className="font-medium">{d.title}</div>
-                  {d.variationName && <div className="text-xs text-muted-foreground">{d.variationName}</div>}
+                  {d.variationName && <div className="text-xs text-muted-foreground mt-1.5">{d.variationName}</div>}
                 </div>
                 <a href={d.fileUrl} target="_blank" rel="noopener noreferrer"><Button size="sm"><Download className="h-4 w-4 mr-1" />Download</Button></a>
               </Card>
@@ -41,17 +41,17 @@ function Dashboard() {
       </div>
 
       <div>
-        <h2 className="font-semibold text-lg mb-3">Recent orders</h2>
+        <h2 className="font-semibold text-lg mb-4">Recent orders</h2>
         {orders.slice(0, 5).length ? (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-6">
             {orders.slice(0, 5).map((o) => (
-              <Link key={o.id} to="/account/orders/$id" params={{ id: o.id }}>
-                <Card className="p-4 flex justify-between items-center hover:shadow-sm">
+              <Link key={o.id} to="/account/orders/$id" params={{ id: o.id }} className="block">
+                <Card className="p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 hover:shadow-md border">
                   <div>
-                    <div className="font-medium">{o.id}</div>
-                    <div className="text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleString()} · {o.items.length} items</div>
+                    <div className="font-medium">{o.items.map((i) => i.title).join(", ")}</div>
+                    <div className="text-xs text-muted-foreground mt-1.5">{new Date(o.createdAt).toLocaleString()} · {o.items.length} items</div>
                   </div>
-                  <div className="flex items-center gap-3"><Badge variant="outline">{o.status}</Badge><span className="font-semibold">${o.total.toFixed(2)}</span></div>
+                  <div className="flex items-center gap-4"><Badge variant="outline" className="px-3 py-1">{o.status}</Badge><span className="font-semibold text-lg">${o.total.toFixed(2)}</span></div>
                 </Card>
               </Link>
             ))}

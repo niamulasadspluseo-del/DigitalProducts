@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, ShoppingCart, Check } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/product/$slug")({ component: ProductPage });
@@ -67,11 +67,7 @@ function ProductPage() {
             <Button size="lg" variant="outline" onClick={() => { cart.add(product.id, variation, 1, false); nav({ to: "/checkout" }); }}>Buy now</Button>
           </div>
 
-          <ul className="mt-8 space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Instant download after purchase</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Lifetime updates</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> 7-day money-back guarantee</li>
-          </ul>
+
         </div>
       </div>
 

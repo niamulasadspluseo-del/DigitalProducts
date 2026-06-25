@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { IntegrationsScripts } from "@/components/IntegrationsScripts";
 import { CartDrawer } from "@/components/CartDrawer";
+import { useStore } from "@/lib/store";
 
 function NotFoundComponent() {
   return (
@@ -77,8 +78,25 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+      <div className="flex items-center gap-2">
+        <span className="text-lg font-medium text-muted-foreground animate-pulse">Loading</span>
+        <span className="flex gap-1">
+          <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+          <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+          <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const ready = useStore((s) => s.ready);
+  if (!ready) return <LoadingScreen />;
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

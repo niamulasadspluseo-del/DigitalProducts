@@ -69,6 +69,7 @@ interface DB {
 }
 
 const CART_KEY = "ds.cart.v1";
+const SETTINGS_KEY = "ds.settings.v1";
 const isBrowser = typeof window !== "undefined";
 
 const defaultSettings: Settings = {
@@ -204,6 +205,7 @@ function rowToMessage(r: any): ContactMessage {
 let hydrated = false;
 let currentProfile: { id: string; name: string; email: string; status: UserStatus; billing?: any; createdAt: number } | null = null;
 let currentRole: Role = "customer";
+let settingsSavePending = false;
 
 async function loadPublicData() {
   const [products, categories, tags, coupons, reviews, blog, testimonials, faqs, pages, settings] = await Promise.all([
@@ -242,6 +244,7 @@ async function loadPublicData() {
         crypto: { enabled: true, networks: [], ...(s.payments?.crypto ?? {}) },
       },
     };
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(db.settings)); } catch {}
   }
 }
 
@@ -303,6 +306,7 @@ function setupRealtime() {
   const channel = supabase.channel("public-changes");
   for (const t of tables) {
     channel.on("postgres_changes" as any, { event: "*", schema: "public", table: t }, async () => {
+      if (t === "settings" && settingsSavePending) return;
       await loadPublicData(); emit();
     });
   }
@@ -320,6 +324,7 @@ export function hydrate() {
   hydrated = true;
   (async () => {
     try { const raw = localStorage.getItem(CART_KEY); if (raw) db.cart = JSON.parse(raw); } catch {}
+    try { const raw = localStorage.getItem(SETTINGS_KEY); if (raw) { db.settings = JSON.parse(raw); emit(); } } catch {}
     await resolveSession();
     await Promise.all([loadPublicData(), loadUserScopedData()]);
     db.ready = true;
@@ -597,11 +602,14 @@ export const admin = {
     db.users = db.users.map((u) => u.id === id ? { ...u, status: s } : u); emit();
   },
   async saveSettings(s: Settings) {
+    settingsSavePending = true;
     const { error } = await supabase.from("settings").update({
       brand: s.brand as any, hero: s.hero as any, integrations: s.integrations as any, payments: s.payments as any,
     }).eq("id", "singleton");
-    if (error) throw new Error(error.message);
+    if (error) { settingsSavePending = false; throw new Error(error.message); }
     db.settings = s; emit();
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {}
+    setTimeout(() => { settingsSavePending = false; }, 1000);
   },
   async markMessageRead(id: string, read = true) {
     const { error } = await supabase.from("contact_messages").update({ read }).eq("id", id);

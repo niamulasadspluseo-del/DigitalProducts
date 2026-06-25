@@ -32,6 +32,7 @@ export interface Cart { items: CartItem[]; couponCode?: string }
 export interface OrderItem { productId: string; title: string; price: number; qty: number; variationName?: string; fileUrl: string }
 export interface Order {
   id: string; userId: string; userName: string; userEmail: string;
+  telegram?: string; whatsapp?: string;
   items: OrderItem[]; subtotal: number; discount: number; total: number;
   status: OrderStatus;
   payment: { method: "stripe" | "crypto"; txid?: string; network?: string; cardLast4?: string };
@@ -173,6 +174,7 @@ function rowToOrder(r: any): Order {
   const meta = r.payment_meta ?? {};
   return {
     id: r.id, userId: r.user_id ?? "", userName: r.user_name ?? "", userEmail: r.user_email ?? "",
+    telegram: r.telegram ?? undefined, whatsapp: r.whatsapp ?? undefined,
     items: r.items ?? [], subtotal: Number(r.subtotal), discount: Number(r.discount), total: Number(r.total),
     status: statusOut(r.status),
     payment: { method: r.payment_method ?? "stripe", txid: r.payment_txid ?? undefined, network: meta.network, cardLast4: meta.cardLast4 },
@@ -445,7 +447,7 @@ export function totals(c: Cart = db.cart) {
 
 // ---------- Orders ----------
 export const orders = {
-  async create(payment: Order["payment"]) {
+  async create(payment: Order["payment"], contact?: { name: string; email: string; telegram?: string; whatsapp?: string }) {
     const user = auth.current(); if (!user) throw new Error("Login required");
     const t = totals(); if (!t.items.length) throw new Error("Cart is empty");
     const items: OrderItem[] = t.items.map((i) => ({
@@ -453,12 +455,13 @@ export const orders = {
       variationName: i.variation?.name, fileUrl: i.product.fileUrl,
     }));
     const { data, error } = await supabase.from("orders").insert({
-      user_id: user.id, user_name: user.name, user_email: user.email,
+      user_id: user.id, user_name: contact?.name ?? user.name, user_email: contact?.email ?? user.email,
+      telegram: contact?.telegram ?? null, whatsapp: contact?.whatsapp ?? null,
       items: items as any, subtotal: t.subtotal, discount: t.discount, total: t.total,
       coupon_code: t.coupon?.code ?? null, status: "pending",
       payment_method: payment.method, payment_txid: payment.txid ?? null,
       payment_meta: { network: payment.network ?? null, cardLast4: payment.cardLast4 ?? null } as any,
-    }).select().single();
+    } as any).select().single();
     if (error || !data) throw new Error(error?.message ?? "Failed to create order");
     if (t.coupon) {
       await supabase.from("coupons").update({ used_count: t.coupon.usedCount + 1 }).eq("code", t.coupon.code);

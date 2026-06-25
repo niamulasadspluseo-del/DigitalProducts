@@ -72,6 +72,13 @@ function OrderDetail() {
         {order.payment.network && <div>Network: {order.payment.network}</div>}
         {order.payment.txid && <div className="break-all">TXID: <span className="font-mono text-xs">{order.payment.txid}</span></div>}
       </Card>
+      {(order.telegram || order.whatsapp) && (
+        <Card className="p-6 text-sm">
+          <h2 className="font-semibold mb-2">Contact</h2>
+          {order.telegram && <div>Telegram: {order.telegram}</div>}
+          {order.whatsapp && <div>WhatsApp: {order.whatsapp}</div>}
+        </Card>
+      )}
     </div>
   );
 }

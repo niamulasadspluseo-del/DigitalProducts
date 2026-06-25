@@ -18,7 +18,7 @@ function OrdersAdmin() {
             <div className="flex-1 min-w-0">
               <div className="font-medium">{o.items.map((i) => i.title).join(", ")}</div>
               <div className="text-xs text-muted-foreground">{o.userName} · {o.userEmail} · {new Date(o.createdAt).toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">{o.items.length} items · {o.payment.method}{o.payment.network ? " · " + o.payment.network : ""}</div>
+              <div className="text-xs text-muted-foreground">{o.items.length} items · {o.payment.method}{o.payment.network ? " · " + o.payment.network : ""}{o.telegram ? " · Telegram: " + o.telegram : ""}{o.whatsapp ? " · WhatsApp: " + o.whatsapp : ""}</div>
             </div>
             <div className="font-semibold">${o.total.toFixed(2)}</div>
             <Select value={o.status} onValueChange={(v: OrderStatus) => ordersApi.setStatus(o.id, v)}>

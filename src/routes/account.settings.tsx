@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useStore, auth } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,10 +37,14 @@ function Settings() {
           <div><Label>Current password</Label><Input type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>
           <div><Label>New password</Label><Input type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
         </div>
-        <Button className="mt-4" onClick={() => {
-          if (pw.current !== user.password) return toast.error("Current password is wrong");
+        <Button className="mt-4" onClick={async () => {
+          if (!pw.current) return toast.error("Enter current password");
           if (pw.next.length < 6) return toast.error("New password too short");
-          auth.updateProfile({ password: pw.next }); setPw({ current: "", next: "" }); toast.success("Password changed");
+          try {
+            const { error } = await supabase.auth.updateUser({ password: pw.next });
+            if (error) throw new Error(error.message);
+            setPw({ current: "", next: "" }); toast.success("Password changed");
+          } catch (e: any) { toast.error(e.message); }
         }}>Change password</Button>
       </Card>
 

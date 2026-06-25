@@ -15,7 +15,6 @@ export const Route = createFileRoute("/checkout")({ component: Checkout });
 
 function Checkout() {
   const session = useStore((s) => s.sessionUserId);
-  const user = useStore((s) => s.users.find((u) => u.id === s.sessionUserId));
   const items = useStore((s) => s.cart.items);
   const couponCode = useStore((s) => s.cart.couponCode);
   const stripe = useStore((s) => s.settings.payments.stripe);
@@ -23,8 +22,10 @@ function Checkout() {
   const nav = useNavigate();
   const t = totals();
 
-  const [name, setName] = useState(user?.name ?? "");
-  const [email, setEmail] = useState(user?.email ?? "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [telegram, setTelegram] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const paymentMethods = useMemo(() => {
     const methods: ("stripe" | "crypto")[] = [];
     if (stripe.enabled) methods.push("stripe");
@@ -56,8 +57,6 @@ function Checkout() {
     }
   };
 
-  useEffect(() => { if (user) { setName(user.name); setEmail(user.email); } }, [user]);
-
   if (!session) {
     return (
       <SiteLayout>
@@ -76,15 +75,16 @@ function Checkout() {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return toast.error("Name and email required");
     try {
+      const contact = { name: name.trim(), email: email.trim(), telegram: telegram.trim() || undefined, whatsapp: whatsapp.trim() || undefined };
       let o;
       if (method === "stripe") {
         if (!/^\d{12,19}$/.test(card.number.replace(/\s/g, ""))) return toast.error("Enter a valid (mock) card number");
-        o = await orders.create({ method: "stripe", cardLast4: card.number.slice(-4) });
+        o = await orders.create({ method: "stripe", cardLast4: card.number.slice(-4) }, contact);
         toast.success("Order placed! Status: pending. Wait for admin approval.");
       } else {
         if (!txid.trim()) return toast.error("Submit your transaction ID");
         const net = crypto.networks.find((n) => n.id === networkId);
-        o = await orders.create({ method: "crypto", txid, network: net?.name + " (" + net?.chain + ")" });
+        o = await orders.create({ method: "crypto", txid, network: net?.name + " (" + net?.chain + ")" }, contact);
         toast.success("Order placed! Status: pending. Wait for admin approval.");
       }
       await auth.updateProfile({ name, email });
@@ -105,6 +105,8 @@ function Checkout() {
             <div className="mt-4 grid md:grid-cols-2 gap-3">
               <div><Label>Full name *</Label><Input required value={name} onChange={(e) => setName(e.target.value)} /></div>
               <div><Label>Email *</Label><Input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+              <div><Label>Telegram Username</Label><Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@username" /></div>
+              <div><Label>WhatsApp Number</Label><Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} /></div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">Your download links will be sent to this email.</p>
           </Card>

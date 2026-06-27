@@ -485,7 +485,7 @@ export type Database = {
         | "ready_for_delivery"
         | "delivered"
         | "refunded"
-      payment_method: "stripe" | "crypto"
+      payment_method: "crypto"
       user_status: "active" | "suspended" | "banned"
     }
     CompositeTypes: {
@@ -623,7 +623,7 @@ export const Constants = {
         "delivered",
         "refunded",
       ],
-      payment_method: ["stripe", "crypto"],
+      payment_method: ["crypto"],
       user_status: ["active", "suspended", "banned"],
     },
   },

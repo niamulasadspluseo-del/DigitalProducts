@@ -20,15 +20,6 @@ function PaymentsAdmin() {
       <h1 className="text-3xl font-bold">Payment Gateways</h1>
 
       <Card className="p-6 space-y-3">
-        <div className="flex items-center justify-between"><h2 className="font-semibold">Stripe</h2>
-          <Switch checked={s.payments.stripe.enabled} onCheckedChange={(v) => setS({ ...s, payments: { ...s.payments, stripe: { ...s.payments.stripe, enabled: v } } })} />
-        </div>
-        <div><Label>Publishable key</Label><Input value={s.payments.stripe.publishableKey ?? ""} onChange={(e) => setS({ ...s, payments: { ...s.payments, stripe: { ...s.payments.stripe, publishableKey: e.target.value } } })} placeholder="pk_..." /></div>
-        <div><Label>Secret key</Label><Input type="password" value={s.payments.stripe.secretKey ?? ""} onChange={(e) => setS({ ...s, payments: { ...s.payments, stripe: { ...s.payments.stripe, secretKey: e.target.value } } })} placeholder="sk_..." /></div>
-        <p className="text-xs text-muted-foreground">Demo only. Use real Stripe SDK when you connect a backend.</p>
-      </Card>
-
-      <Card className="p-6 space-y-3">
         <div className="flex items-center justify-between"><h2 className="font-semibold">Manual Crypto Payments</h2>
           <Switch checked={s.payments.crypto.enabled} onCheckedChange={(v) => setS({ ...s, payments: { ...s.payments, crypto: { ...s.payments.crypto, enabled: v } } })} />
         </div>

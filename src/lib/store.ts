@@ -35,7 +35,7 @@ export interface Order {
   telegram?: string; whatsapp?: string;
   items: OrderItem[]; subtotal: number; discount: number; total: number;
   status: OrderStatus;
-  payment: { method: "stripe" | "crypto"; txid?: string; network?: string; cardLast4?: string };
+  payment: { method: "crypto"; txid?: string; network?: string; cardLast4?: string };
   createdAt: number;
 }
 export interface Coupon {
@@ -53,7 +53,6 @@ export interface Settings {
   hero: { eyebrow: string; title: string; subtitle: string; ctaText: string };
   integrations: { ga4?: string; gtm?: string; metaPixel?: string; googleAdsId?: string; tiktokPixel?: string; clarityId?: string; headerScript?: string; footerScript?: string };
   payments: {
-    stripe: { enabled: boolean; publishableKey?: string; secretKey?: string };
     crypto: { enabled: boolean; networks: CryptoNetwork[] };
   };
 }
@@ -77,7 +76,7 @@ const defaultSettings: Settings = {
   brand: { name: "PixelMart", metaTitle: "PixelMart — Premium Digital Products", metaDesc: "Templates, ebooks, software and courses for creators and founders." },
   hero: { eyebrow: "Premium Digital Goods", title: "Build faster with battle-tested digital products", subtitle: "Templates, ebooks, software and courses crafted by working pros. Instant download, lifetime updates.", ctaText: "Shop products" },
   integrations: {},
-  payments: { stripe: { enabled: true }, crypto: { enabled: true, networks: [] } },
+  payments: { crypto: { enabled: true, networks: [] } },
 };
 
 const empty = (): DB => ({
@@ -179,7 +178,7 @@ function rowToOrder(r: any): Order {
     telegram: r.telegram ?? undefined, whatsapp: r.whatsapp ?? undefined,
     items: r.items ?? [], subtotal: Number(r.subtotal), discount: Number(r.discount), total: Number(r.total),
     status: statusOut(r.status),
-    payment: { method: r.payment_method ?? "stripe", txid: r.payment_txid ?? undefined, network: meta.network, cardLast4: meta.cardLast4 },
+    payment: { method: r.payment_method ?? "crypto", txid: r.payment_txid ?? undefined, network: meta.network, cardLast4: meta.cardLast4 },
     createdAt: ts(r.created_at),
   };
 }
@@ -244,7 +243,6 @@ async function loadPublicData() {
       hero: { ...defaultSettings.hero, ...(s.hero ?? {}) },
       integrations: s.integrations ?? {},
       payments: {
-        stripe: { enabled: true, ...(s.payments?.stripe ?? {}) },
         crypto: { enabled: true, networks: [], ...(s.payments?.crypto ?? {}) },
       },
     };

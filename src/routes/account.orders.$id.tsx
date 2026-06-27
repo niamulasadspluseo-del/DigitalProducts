@@ -81,7 +81,7 @@ function OrderDetail() {
         <div className="grid sm:grid-cols-2 gap-4 text-sm">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground"><CreditCard className="h-4 w-4" /><span>Method</span></div>
-            <div className="font-medium ml-6">{order.payment.method === "stripe" ? "Credit/Debit Card" : "Cryptocurrency"}</div>
+            <div className="font-medium ml-6">Cryptocurrency</div>
             {order.payment.cardLast4 && <div className="ml-6">Card ending in <span className="font-mono">•••• {order.payment.cardLast4}</span></div>}
             {order.payment.network && <><div className="flex items-center gap-2 text-muted-foreground mt-3"><Network className="h-4 w-4" /><span>Network</span></div><div className="font-medium ml-6">{order.payment.network}</div></>}
             {order.payment.txid && <><div className="flex items-center gap-2 text-muted-foreground mt-3"><Hash className="h-4 w-4" /><span>TXID</span></div><div className="ml-6 break-all font-mono text-xs">{order.payment.txid}</div></>}

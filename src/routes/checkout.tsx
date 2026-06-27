@@ -1,14 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useStore, totals, orders, cart } from "@/lib/store";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Lock, CreditCard, Bitcoin, Tag, X, Copy, Check } from "lucide-react";
+import { Lock, Bitcoin, Tag, X, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
@@ -17,7 +16,6 @@ function Checkout() {
   const session = useStore((s) => s.sessionUserId);
   const items = useStore((s) => s.cart.items);
   const couponCode = useStore((s) => s.cart.couponCode);
-  const stripe = useStore((s) => s.settings.payments.stripe);
   const crypto = useStore((s) => s.settings.payments.crypto);
   const nav = useNavigate();
   const t = totals();
@@ -26,15 +24,6 @@ function Checkout() {
   const [email, setEmail] = useState("");
   const [telegram, setTelegram] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const paymentMethods = useMemo(() => {
-    const methods: ("stripe" | "crypto")[] = [];
-    if (stripe.enabled) methods.push("stripe");
-    if (crypto.enabled) methods.push("crypto");
-    return methods;
-  }, [stripe.enabled, crypto.enabled]);
-  const [method, setMethod] = useState<"stripe" | "crypto">(paymentMethods[0] ?? "stripe");
-  useEffect(() => { if (!paymentMethods.includes(method)) setMethod(paymentMethods[0] ?? "stripe"); }, [paymentMethods, method]);
-  const [card, setCard] = useState({ number: "", exp: "", cvc: "" });
   const [networkId, setNetworkId] = useState(crypto.networks[0]?.id ?? "");
   const [txid, setTxid] = useState("");
   const [code, setCode] = useState("");
@@ -74,19 +63,12 @@ function Checkout() {
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return toast.error("Name and email required");
+    if (!txid.trim()) return toast.error("Submit your transaction ID");
     try {
       const contact = { name: name.trim(), email: email.trim(), telegram: telegram.trim() || undefined, whatsapp: whatsapp.trim() || undefined };
-      let o;
-      if (method === "stripe") {
-        if (!/^\d{12,19}$/.test(card.number.replace(/\s/g, ""))) return toast.error("Enter a valid (mock) card number");
-        o = await orders.create({ method: "stripe", cardLast4: card.number.slice(-4) }, contact);
-        toast.success("Order placed! Status: pending. Wait for admin approval.");
-      } else {
-        if (!txid.trim()) return toast.error("Submit your transaction ID");
-        const net = crypto.networks.find((n) => n.id === networkId);
-        o = await orders.create({ method: "crypto", txid, network: net?.name + " (" + net?.chain + ")" }, contact);
-        toast.success("Order placed! Status: pending. Wait for admin approval.");
-      }
+      const net = crypto.networks.find((n) => n.id === networkId);
+      const o = await orders.create({ method: "crypto", txid, network: net?.name + " (" + net?.chain + ")" }, contact);
+      toast.success("Order placed! Status: pending. Wait for admin approval.");
       nav({ to: "/account/orders/$id", params: { id: o.id } });
     } catch (err: any) { toast.error(err.message); }
   }
@@ -112,33 +94,13 @@ function Checkout() {
 
           <Card className="p-6">
             <h2 className="font-semibold flex items-center gap-2"><Lock className="h-4 w-4" /> Payment method</h2>
-            <RadioGroup value={method} onValueChange={(v: any) => setMethod(v)} className="mt-4 space-y-3">
-              {stripe.enabled && (
-                <Label className="flex items-center gap-3 border rounded-md p-4 cursor-pointer has-[:checked]:border-primary">
-                  <RadioGroupItem value="stripe" />
-                  <CreditCard className="h-4 w-4" /> Credit / Debit card
-                </Label>
-              )}
-              {crypto.enabled && (
-                <Label className="flex items-center gap-3 border rounded-md p-4 cursor-pointer has-[:checked]:border-primary">
-                  <RadioGroupItem value="crypto" />
+            {!crypto.enabled ? (
+              <p className="mt-3 text-sm text-muted-foreground">No payment methods available.</p>
+            ) : (
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-3 border rounded-md p-4 bg-muted/30">
                   <Bitcoin className="h-4 w-4" /> Cryptocurrency
-                </Label>
-              )}
-            </RadioGroup>
-
-            {method === "stripe" && (
-              <div className="mt-4 space-y-3">
-                <div><Label>Card number</Label><Input placeholder="4242 4242 4242 4242" value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value })} /></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Expiry</Label><Input placeholder="MM/YY" value={card.exp} onChange={(e) => setCard({ ...card, exp: e.target.value })} /></div>
-                  <div><Label>CVC</Label><Input placeholder="123" value={card.cvc} onChange={(e) => setCard({ ...card, cvc: e.target.value })} /></div>
                 </div>
-                <p className="text-xs text-muted-foreground">Demo mode — no real charge.</p>
-              </div>
-            )}
-            {method === "crypto" && (
-              <div className="mt-4 space-y-3">
                 <div><Label>Network</Label>
                   <Select value={networkId} onValueChange={setNetworkId}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -193,7 +155,9 @@ function Checkout() {
             <div className="flex justify-between"><span>Discount</span><span>−${t.discount.toFixed(2)}</span></div>
             <div className="flex justify-between font-bold text-base"><span>Total</span><span>${t.total.toFixed(2)}</span></div>
           </div>
-          <Button type="submit" className="w-full mt-4" size="lg"><Lock className="mr-2 h-4 w-4" />Place order</Button>
+          <Button type="submit" className="w-full mt-4" size="lg" disabled={!crypto.enabled}>
+            <Lock className="mr-2 h-4 w-4" />Place order
+          </Button>
         </Card>
       </form>
     </SiteLayout>

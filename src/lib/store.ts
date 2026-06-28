@@ -491,6 +491,22 @@ export const orders = {
     const { error } = await supabase.from("orders").update({ status: statusIn(status) as any }).eq("id", id);
     if (error) console.error(error);
   },
+  async setDeliveredWithFiles(id: string, fileUrls: Record<string, string>) {
+    const order = db.orders.find((o) => o.id === id);
+    if (!order) return;
+    const updatedItems = order.items.map((item) => {
+      const url = fileUrls[item.productId];
+      return url ? { ...item, fileUrl: url } : item;
+    });
+    db.orders = db.orders.map((o) =>
+      o.id === id ? { ...o, status: "Delivered" as OrderStatus, items: updatedItems } : o
+    );
+    emit();
+    const { error } = await supabase.from("orders")
+      .update({ status: statusIn("Delivered") as any, items: updatedItems as any })
+      .eq("id", id);
+    if (error) console.error(error);
+  },
   forUser(userId: string) { return db.orders.filter((o) => o.userId === userId); },
   delivered(userId: string) { return db.orders.filter((o) => o.userId === userId && o.status === "Delivered"); },
 };

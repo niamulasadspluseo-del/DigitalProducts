@@ -63,7 +63,7 @@ function OrderDetail() {
               <div className="flex items-center gap-3">
                 <span className="font-semibold">${(it.price * it.qty).toFixed(2)}</span>
                 {order.status === "Delivered" && (
-                  <a href={it.fileUrl} target="_blank" rel="noopener noreferrer"><Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" />Download</Button></a>
+                  <a href={it.fileUrl} target="_blank" rel="noopener noreferrer"><Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" />Download Your File</Button></a>
                 )}
               </div>
             </div>

@@ -7,6 +7,20 @@ import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/account/")({ component: Dashboard });
 
+function statusColor(s: string): string {
+  const map: Record<string, string> = {
+    "Pending": "bg-amber-600 text-white border-amber-600",
+    "Payment Received": "bg-blue-600 text-white border-blue-600",
+    "Payment Not Received": "bg-red-600 text-white border-red-600",
+    "In Progress": "bg-cyan-600 text-white border-cyan-600",
+    "Ready For Delivery": "bg-purple-600 text-white border-purple-600",
+    "Delivered": "bg-emerald-600 text-white border-emerald-600",
+    "Refunded": "bg-orange-600 text-white border-orange-600",
+    "Cancel": "bg-gray-500 text-white border-gray-500",
+  };
+  return map[s] ?? "bg-secondary text-secondary-foreground";
+}
+
 function Dashboard() {
   const userId = useStore((s) => s.sessionUserId)!;
   const orders = useStore((s) => s.orders.filter((o) => o.userId === userId));
@@ -33,7 +47,7 @@ function Dashboard() {
                   <div className="font-medium">{d.title}</div>
                   {d.variationName && <div className="text-xs text-muted-foreground mt-1.5">{d.variationName}</div>}
                 </div>
-                <a href={d.fileUrl} target="_blank" rel="noopener noreferrer"><Button size="sm"><Download className="h-4 w-4 mr-1" />Download</Button></a>
+                <a href={d.fileUrl} target="_blank" rel="noopener noreferrer"><Button size="sm"><Download className="h-4 w-4 mr-1" />Download Your File</Button></a>
               </Card>
             ))}
           </div>
@@ -51,7 +65,7 @@ function Dashboard() {
                     <div className="font-medium">{o.items.map((i) => i.title).join(", ")}</div>
                     <div className="text-xs text-muted-foreground mt-1.5">{new Date(o.createdAt).toLocaleString()} · {o.items.length} items</div>
                   </div>
-                  <div className="flex items-center gap-4"><Badge variant="outline" className="px-3 py-1">{o.status}</Badge><span className="font-semibold text-lg">${o.total.toFixed(2)}</span></div>
+                  <div className="flex items-center gap-4"><Badge variant="outline" className={"px-3 py-1 border " + statusColor(o.status)}>{o.status}</Badge><span className="font-semibold text-lg">${o.total.toFixed(2)}</span></div>
                 </Card>
               </Link>
             ))}

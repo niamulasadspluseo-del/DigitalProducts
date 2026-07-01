@@ -4,6 +4,7 @@ import { useStore, auth } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -34,8 +35,8 @@ function Settings() {
       <Card className="p-6">
         <h2 className="font-semibold mb-4">Password</h2>
         <div className="grid md:grid-cols-2 gap-3">
-          <div><Label>Current password</Label><Input type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>
-          <div><Label>New password</Label><Input type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
+          <div><Label>Current password</Label><PasswordInput value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></div>
+          <div><Label>New password</Label><PasswordInput value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></div>
         </div>
         <Button className="mt-4" onClick={async () => {
           if (!pw.current) return toast.error("Enter current password");
